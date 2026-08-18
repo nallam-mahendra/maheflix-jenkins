@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Search - Maheflix</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">MAHEFLIX</div>
+    <div class="nav-links">
+        <a th:href="@{/}">Home</a>
+        <a th:href="@{/search}">Browse</a>
+        <form class="search-form" th:action="@{/search}" method="get">
+            <input type="text" name="q" th:value="${query}" placeholder="Search movies..."/>
+            <button type="submit">Go</button>
+        </form>
+    </div>
+</nav>
+
+<section class="search-page">
+    <h2 th:text="${query != null and !query.isEmpty()} ? 'Results for &quot;' + ${query} + '&quot;' : 'Browse All Titles'">Results</h2>
+    <div class="grid">
+        <a class="card" th:each="movie : ${results}" th:href="@{'/movie/' + ${movie.id}}">
+            <img th:src="${movie.posterUrl}" th:alt="${movie.title}"/>
+            <div class="card-info">
+                <div class="title" th:text="${movie.title}">Title</div>
+                <div class="meta">
+                    <span class="rating" th:text="'&#9733; ' + ${movie.rating}">★ 8.0</span>
+                    &nbsp;·&nbsp;
+                    <span th:text="${movie.year}">2024</span>
+                </div>
+            </div>
+        </a>
+    </div>
+</section>
+
+<footer>
+    &copy; 2026 Maheflix — Built with Java, Spring Boot &amp; Thymeleaf. Demo project, not affiliated with Netflix.
+</footer>
+
+</body>
+</html>

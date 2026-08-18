@@ -1,0 +1,339 @@
+:root {
+    --bg: #0b0b0b;
+    --bg-soft: #141414;
+    --red: #e50914;
+    --text: #ffffff;
+    --text-dim: #b3b3b3;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Navbar */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 48px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.85), transparent);
+    transition: background 0.3s ease;
+}
+
+.navbar .logo {
+    color: var(--red);
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.navbar .nav-links {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.navbar .nav-links a {
+    font-size: 14px;
+    color: var(--text-dim);
+    transition: color 0.2s;
+}
+
+.navbar .nav-links a:hover {
+    color: var(--text);
+}
+
+.search-form {
+    display: flex;
+    align-items: center;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid #555;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.search-form input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    padding: 8px 12px;
+    width: 180px;
+    font-size: 14px;
+}
+
+.search-form button {
+    background: var(--red);
+    border: none;
+    color: white;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* Hero */
+.hero {
+    position: relative;
+    height: 85vh;
+    min-height: 480px;
+    display: flex;
+    align-items: flex-end;
+    background-size: cover;
+    background-position: center;
+    color: white;
+}
+
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, var(--bg) 5%, rgba(0,0,0,0.15) 55%, rgba(0,0,0,0.6) 100%);
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    padding: 0 48px 60px;
+    max-width: 620px;
+}
+
+.hero-content .badge {
+    color: var(--red);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.hero-content h1 {
+    font-size: 56px;
+    font-weight: 800;
+    margin-bottom: 16px;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
+}
+
+.hero-content p {
+    font-size: 17px;
+    color: #eaeaea;
+    margin-bottom: 22px;
+    line-height: 1.5;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 14px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-play {
+    background: white;
+    color: black;
+}
+
+.btn-play:hover {
+    background: rgba(255,255,255,0.8);
+}
+
+.btn-info {
+    background: rgba(109,109,110,0.6);
+    color: white;
+}
+
+.btn-info:hover {
+    background: rgba(109,109,110,0.4);
+}
+
+/* Rows */
+.rows {
+    padding: 20px 0 60px;
+    position: relative;
+    z-index: 3;
+    margin-top: -80px;
+}
+
+.row {
+    margin-bottom: 40px;
+    padding-left: 48px;
+}
+
+.row h2 {
+    font-size: 22px;
+    margin-bottom: 12px;
+    font-weight: 700;
+}
+
+.row-track {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scrollbar-width: thin;
+}
+
+.row-track::-webkit-scrollbar {
+    height: 6px;
+}
+
+.row-track::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+}
+
+.card {
+    flex: 0 0 auto;
+    width: 200px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--bg-soft);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    cursor: pointer;
+}
+
+.card:hover {
+    transform: scale(1.08);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    z-index: 5;
+}
+
+.card img {
+    width: 100%;
+    display: block;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+}
+
+.card-info {
+    padding: 8px 10px;
+}
+
+.card-info .title {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-info .meta {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 2px;
+}
+
+.rating {
+    color: #ffd60a;
+}
+
+/* Search page */
+.search-page {
+    padding: 120px 48px 60px;
+}
+
+.search-page h2 {
+    margin-bottom: 24px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+}
+
+/* Detail page */
+.detail-page {
+    padding-top: 0;
+}
+
+.detail-banner {
+    height: 60vh;
+    min-height: 360px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+}
+
+.detail-banner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, var(--bg), rgba(0,0,0,0.2));
+}
+
+.detail-content {
+    position: relative;
+    z-index: 2;
+    padding: 0 48px 40px;
+}
+
+.detail-content h1 {
+    font-size: 44px;
+    margin-bottom: 10px;
+}
+
+.detail-meta {
+    display: flex;
+    gap: 16px;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+    font-size: 14px;
+}
+
+.detail-desc {
+    max-width: 700px;
+    font-size: 16px;
+    line-height: 1.6;
+    padding: 0 48px;
+    margin-top: 24px;
+    color: #dedede;
+}
+
+.back-link {
+    display: inline-block;
+    margin: 24px 48px;
+    color: var(--text-dim);
+    font-size: 14px;
+}
+
+.back-link:hover {
+    color: white;
+}
+
+footer {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+    font-size: 13px;
+}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Maheflix - Watch Movies Online</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">MAHEFLIX</div>
+    <div class="nav-links">
+        <a th:href="@{/}">Home</a>
+        <a th:href="@{/search}">Browse</a>
+        <form class="search-form" th:action="@{/search}" method="get">
+            <input type="text" name="q" placeholder="Search movies..."/>
+            <button type="submit">Go</button>
+        </form>
+    </div>
+</nav>
+
+<header class="hero" th:style="'background-image: url(' + ${featured.bannerUrl} + ');'">
+    <div class="hero-content">
+        <span class="badge">FEATURED</span>
+        <h1 th:text="${featured.title}">Movie Title</h1>
+        <p th:text="${featured.description}">Description</p>
+        <div class="hero-buttons">
+            <a class="btn btn-play" th:href="@{'/movie/' + ${featured.id}}">&#9654; Play</a>
+            <a class="btn btn-info" th:href="@{'/movie/' + ${featured.id}}">&#8505; More Info</a>
+        </div>
+    </div>
+</header>
+
+<main class="rows">
+    <div class="row" th:each="entry : ${moviesByCategory}">
+        <h2 th:text="${entry.key}">Category</h2>
+        <div class="row-track">
+            <a class="card" th:each="movie : ${entry.value}" th:href="@{'/movie/' + ${movie.id}}">
+                <img th:src="${movie.posterUrl}" th:alt="${movie.title}"/>
+                <div class="card-info">
+                    <div class="title" th:text="${movie.title}">Title</div>
+                    <div class="meta">
+                        <span class="rating" th:text="'&#9733; ' + ${movie.rating}">★ 8.0</span>
+                        &nbsp;·&nbsp;
+                        <span th:text="${movie.year}">2024</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</main>
+
+<footer>
+    &copy; 2026 Maheflix — Built with Java, Spring Boot &amp; Thymeleaf. Demo project, not affiliated with Netflix.
+</footer>
+
+</body>
+</html>

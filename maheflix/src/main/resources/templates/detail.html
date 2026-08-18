@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${movie.title} + ' - Maheflix'">Movie - Maheflix</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="detail-page">
+
+<nav class="navbar">
+    <div class="logo">MAHEFLIX</div>
+    <div class="nav-links">
+        <a th:href="@{/}">Home</a>
+        <a th:href="@{/search}">Browse</a>
+    </div>
+</nav>
+
+<a class="back-link" th:href="@{/}">&larr; Back to Home</a>
+
+<div class="detail-banner" th:style="'background-image: url(' + ${movie.bannerUrl} + ');'">
+    <div class="detail-content">
+        <h1 th:text="${movie.title}">Title</h1>
+        <div class="detail-meta">
+            <span th:text="${movie.genre}">Genre</span>
+            <span th:text="${movie.year}">2024</span>
+            <span class="rating" th:text="'&#9733; ' + ${movie.rating}">★ 8.0</span>
+        </div>
+        <div class="hero-buttons">
+            <button class="btn btn-play">&#9654; Play</button>
+            <button class="btn btn-info">+ My List</button>
+        </div>
+    </div>
+</div>
+
+<p class="detail-desc" th:text="${movie.description}">Description goes here.</p>
+
+<footer>
+    &copy; 2026 Maheflix — Built with Java, Spring Boot &amp; Thymeleaf. Demo project, not affiliated with Netflix.
+</footer>
+
+</body>
+</html>

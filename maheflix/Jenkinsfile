@@ -1,0 +1,72 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'Maven-3.8'
+        jdk 'JDK-21'
+    }
+
+    environment {
+        APP_NAME = 'maheflix-webapp'
+    }
+
+    options {
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        disableConcurrentBuilds()
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                echo "Checking out source code..."
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo "Building ${APP_NAME} with Maven..."
+                sh 'mvn -B -DskipTests clean compile'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo "Running unit tests..."
+                sh 'mvn -B test'
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Package') {
+            steps {
+                echo "Packaging application as JAR..."
+                sh 'mvn -B package -DskipTests'
+            }
+        }
+
+        stage('Archive Artifact') {
+            steps {
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Build #${env.BUILD_NUMBER} for ${APP_NAME} completed successfully."
+        }
+        failure {
+            echo "Build #${env.BUILD_NUMBER} for ${APP_NAME} failed. Check logs above."
+        }
+        always {
+            cleanWs()
+        }
+    }
+}

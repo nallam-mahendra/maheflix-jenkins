@@ -22,33 +22,40 @@ pipeline {
         }
 
         stage('Build and Deploy') {
-            steps {
-                sh """
-                ssh -o StrictHostKeyChecking=no ubuntu@${SERVER_IP} '
-                    set -e
+    steps {
+        sh """
+        ssh -o StrictHostKeyChecking=no ubuntu@${SERVER_IP} '
+            set -e
 
-                    echo "Cleaning previous deployment..."
-                    rm -rf ${REPO_DIR}
+            export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+            export PATH=\\$JAVA_HOME/bin:\\$PATH
 
-                    echo "Cloning repository..."
-                    git clone https://github.com/nallam-mahendra/${REPO_DIR}.git
+            echo "===== JAVA ====="
+            java -version
 
-                    echo "Moving to application directory..."
-                    cd ${REPO_DIR}/${APP_NAME}
+            echo "===== JAVAC ====="
+            javac -version
 
-                    echo "Checking Java version..."
-                    java -version
+            echo "===== MAVEN ====="
+            mvn -version
 
-                    echo "Checking Maven version..."
-                    mvn -version
+            rm -rf ${REPO_DIR}
 
-                    echo "Building application..."
-                    mvn clean package
+            git clone https://github.com/nallam-mahendra/${REPO_DIR}.git
 
-                    echo "Deploying WAR file..."
-                    sudo cp target/${APP_NAME}.war /opt/tomcat/webapps/
+            cd ${REPO_DIR}/${APP_NAME}
 
-                    echo "Deployment completed successfully!"
+            echo "===== BUILDING ====="
+            mvn clean package
+
+            echo "===== DEPLOYING ====="
+            sudo cp target/${APP_NAME}.war /opt/tomcat/webapps/
+
+            echo "===== DEPLOYMENT SUCCESSFUL ====="
+        '
+        """
+    }
+}
                 '
                 """
             }

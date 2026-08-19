@@ -22,41 +22,46 @@ pipeline {
         }
 
         stage('Build and Deploy') {
-    steps {
-        sh """
-        ssh -o StrictHostKeyChecking=no ubuntu@${SERVER_IP} '
-            set -e
+            steps {
+                sh """
+                    ssh -o StrictHostKeyChecking=no ubuntu@${SERVER_IP} "bash -s" <<'REMOTE_SCRIPT'
 
-            export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
-            export PATH=\\$JAVA_HOME/bin:\\$PATH
+                    set -e
 
-            echo "===== JAVA ====="
-            java -version
+                    echo "Cleaning previous deployment..."
+                    rm -rf ${REPO_DIR}
 
-            echo "===== JAVAC ====="
-            javac -version
+                    echo "Cloning repository..."
+                    git clone https://github.com/nallam-mahendra/${REPO_DIR}.git
 
-            echo "===== MAVEN ====="
-            mvn -version
+                    echo "Moving to application directory..."
+                    cd ${REPO_DIR}/${APP_NAME}
 
-            rm -rf ${REPO_DIR}
+                    echo "Setting Java 21..."
+                    export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+                    export PATH=\\\$JAVA_HOME/bin:\\\$PATH
 
-            git clone https://github.com/nallam-mahendra/${REPO_DIR}.git
+                    echo "===== JAVA VERSION ====="
+                    java -version
 
-            cd ${REPO_DIR}/${APP_NAME}
+                    echo "===== JAVAC VERSION ====="
+                    javac -version
 
-            echo "===== BUILDING ====="
-            mvn clean package
+                    echo "===== MAVEN VERSION ====="
+                    mvn -version
 
-            echo "===== DEPLOYING ====="
-            sudo cp target/${APP_NAME}.war /opt/tomcat/webapps/
+                    echo "===== BUILDING APPLICATION ====="
+                    mvn clean package
 
-            echo "===== DEPLOYMENT SUCCESSFUL ====="
-        '
-        """
-    }
-}
-                '
+                    echo "===== CHECKING WAR FILE ====="
+                    ls -lh target/
+
+                    echo "===== DEPLOYING WAR ====="
+                    sudo cp target/${APP_NAME}.war /opt/tomcat/webapps/
+
+                    echo "===== DEPLOYMENT SUCCESSFUL ====="
+
+REMOTE_SCRIPT
                 """
             }
         }

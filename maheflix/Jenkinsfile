@@ -9,14 +9,14 @@ pipeline {
 
     environment {
         APP_NAME = "maheflix"
-        SERVER_IP = "54.200.67.45"
-        REPO_DIR = "maheflix-jenkins"
+        SERVER_IP = "35.87.12.190"
     }
 
     stages {
 
         stage('Checkout') {
             steps {
+                echo "===== CHECKOUT SOURCE CODE ====="
                 checkout scm
             }
         }
@@ -24,37 +24,66 @@ pipeline {
         stage('Check Java and Maven') {
             steps {
                 sh '''
+                    export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+                    export PATH=$JAVA_HOME/bin:$PATH
+
+                    echo "===== JAVA HOME ====="
                     echo "JAVA_HOME=$JAVA_HOME"
+
+                    echo "===== JAVA VERSION ====="
                     java -version
+
+                    echo "===== JAVAC VERSION ====="
                     javac -version
+
+                    echo "===== MAVEN VERSION ====="
                     mvn -version
                 '''
             }
         }
 
-        stage('Build and Deploy') {
+        stage('Build') {
             steps {
-                sh """
-                ssh -o StrictHostKeyChecking=no ubuntu@${SERVER_IP} '
-                    set -e
+                dir('maheflix') {
+                    sh '''
+                        export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+                        export PATH=$JAVA_HOME/bin:$PATH
 
-                    rm -rf ${REPO_DIR}
+                        echo "===== BUILDING MAHEFLIX ====="
 
-                    git clone https://github.com/nallam-mahendra/${REPO_DIR}.git
+                        mvn clean package
 
-                    cd ${REPO_DIR}/${APP_NAME}
+                        echo "===== BUILD SUCCESS ====="
 
-                    java -version
-                    mvn -version
+                        ls -lh target/
 
-                    mvn clean package
+                        echo "===== WAR FILE ====="
 
-                    sudo cp target/${APP_NAME}.war /opt/tomcat/webapps/
-
-                    echo "Deployment completed successfully!"
-                '
-                """
+                        ls -lh target/maheflix-webapp.war
+                    '''
+                }
             }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo "===== DEPLOY STAGE ====="
+
+                /*
+                 * Deployment will be added after
+                 * Maven build is confirmed successful.
+                 */
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "===== PIPELINE SUCCESS ====="
+        }
+
+        failure {
+            echo "===== PIPELINE FAILED ====="
         }
     }
 }

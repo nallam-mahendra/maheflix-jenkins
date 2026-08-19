@@ -16,7 +16,7 @@
     <version>1.0.0</version>
     <name>maheflix-webapp</name>
     <description>Maheflix - A Netflix-style movie browsing web application</description>
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
 
     <properties>
         <java.version>21</java.version>

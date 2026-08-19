@@ -1,0 +1,176 @@
+pipeline {
+
+    agent any
+
+    tools {
+        maven 'Maven-3.8'
+        jdk 'JDK-21'
+    }
+
+    environment {
+        APP_NAME = "maheflix"
+        SERVER_IP = "35.87.12.190"
+        REPO_URL = "https://github.com/nallam-mahendra/maheflix-jenkins.git"
+        REPO_DIR = "maheflix-jenkins"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                echo "===== CHECKOUT SOURCE CODE ====="
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo "===== JAVA VERSION ====="
+                sh 'java -version'
+
+                echo "===== MAVEN VERSION ====="
+                sh 'mvn -version'
+
+                echo "===== BUILDING APPLICATION ====="
+
+                dir('maheflix') {
+                    sh '''
+                        mvn clean package
+                    '''
+                }
+
+                echo "===== BUILD COMPLETED ====="
+            }
+        }
+
+        stage('Verify WAR') {
+            steps {
+                dir('maheflix') {
+                    sh '''
+                        echo "===== GENERATED FILES ====="
+                        ls -lh target/
+
+                        echo "===== WAR FILE ====="
+                        ls -lh target/maheflix-webapp.war
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to AWS') {
+            steps {
+
+                echo "===== DEPLOYING TO AWS SERVER ====="
+
+                sh """
+                    ssh -o StrictHostKeyChecking=no ubuntu@${SERVER_IP} "bash -s" <<'REMOTE_SCRIPT'
+
+                    set -e
+
+                    echo "===== CONNECTED TO AWS SERVER ====="
+
+                    echo "===== JAVA VERSION ====="
+                    java -version
+
+                    echo "===== REMOVING OLD APPLICATION ====="
+
+                    sudo rm -f /opt/tomcat/webapps/maheflix.war
+
+                    sudo rm -rf /opt/tomcat/webapps/maheflix
+
+                    echo "===== CLONING APPLICATION ====="
+
+                    rm -rf ${REPO_DIR}
+
+                    git clone ${REPO_URL}
+
+                    echo "===== BUILDING APPLICATION ON SERVER ====="
+
+                    cd ${REPO_DIR}/maheflix
+
+                    export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+                    export PATH=/usr/lib/jvm/java-21-openjdk-amd64/bin:/usr/share/maven/bin:/usr/bin:/bin
+
+                    echo "===== JAVA ====="
+                    java -version
+
+                    echo "===== MAVEN ====="
+                    mvn -version
+
+                    mvn clean package
+
+                    echo "===== WAR FILE ====="
+
+                    ls -lh target/
+
+                    echo "===== COPYING WAR TO TOMCAT ====="
+
+                    sudo cp target/maheflix-webapp.war /opt/tomcat/webapps/maheflix.war
+
+                    echo "===== WAR DEPLOYED ====="
+
+                    echo "===== RESTARTING TOMCAT ====="
+
+                    if sudo systemctl list-unit-files | grep -q '^tomcat.service'; then
+
+                        sudo systemctl restart tomcat
+
+                        echo "===== TOMCAT STATUS ====="
+
+                        sudo systemctl status tomcat --no-pager
+
+                    else
+
+                        echo "Tomcat systemd service not found."
+
+                        echo "===== CHECKING TOMCAT PROCESS ====="
+
+                        if pgrep -f 'org.apache.catalina.startup.Bootstrap' > /dev/null; then
+
+                            echo "Tomcat is running."
+
+                            echo "Stopping Tomcat..."
+
+                            sudo /opt/tomcat/bin/shutdown.sh || true
+
+                            sleep 5
+
+                        fi
+
+                        echo "Starting Tomcat..."
+
+                        sudo /opt/tomcat/bin/startup.sh
+
+                        sleep 10
+
+                        echo "===== TOMCAT PROCESSES ====="
+
+                        ps -ef | grep tomcat | grep -v grep || true
+
+                    fi
+
+                    echo "================================="
+                    echo " DEPLOYMENT SUCCESSFUL "
+                    echo "================================="
+
+REMOTE_SCRIPT
+                """
+            }
+        }
+    }
+
+    post {
+
+        success {
+            echo "================================="
+            echo " MAHEFLIX DEPLOYMENT SUCCESSFUL "
+            echo "================================="
+        }
+
+        failure {
+            echo "================================="
+            echo " MAHEFLIX DEPLOYMENT FAILED "
+            echo "================================="
+        }
+    }
+}

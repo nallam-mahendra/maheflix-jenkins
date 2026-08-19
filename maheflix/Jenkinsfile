@@ -38,14 +38,15 @@ pipeline {
                     cd ${REPO_DIR}/${APP_NAME}
 
                     echo "Setting Java 21..."
+
                     export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
-                    export PATH=\\\$JAVA_HOME/bin:\\\$PATH
+                    export PATH=/usr/lib/jvm/java-21-openjdk-amd64/bin:/usr/bin:/bin
 
                     echo "===== JAVA VERSION ====="
-                    java -version
+                    /usr/lib/jvm/java-21-openjdk-amd64/bin/java -version
 
                     echo "===== JAVAC VERSION ====="
-                    javac -version
+                    /usr/lib/jvm/java-21-openjdk-amd64/bin/javac -version
 
                     echo "===== MAVEN VERSION ====="
                     mvn -version

@@ -9,7 +9,7 @@ pipeline {
 
     environment {
         APP_NAME = "maheflix"
-        SERVER_IP = "35.87.12.190"
+        SERVER_IP = "54.200.67.45"
         REPO_URL = "https://github.com/nallam-mahendra/maheflix-jenkins.git"
         REPO_DIR = "maheflix-jenkins"
     }

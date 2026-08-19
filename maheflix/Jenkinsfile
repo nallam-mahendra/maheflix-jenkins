@@ -9,8 +9,7 @@ pipeline {
 
     environment {
         APP_NAME = "maheflix"
-        SERVER_IP = "35.87.12.190"
-        REPO_URL = "https://github.com/nallam-mahendra/maheflix-jenkins.git"
+        SERVER_IP = "54.200.67.45"
         REPO_DIR = "maheflix-jenkins"
     }
 
@@ -18,171 +17,44 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                echo "===== CHECKOUT SOURCE CODE ====="
                 checkout scm
             }
         }
 
-        stage('Build') {
+        stage('Check Java and Maven') {
             steps {
-
-                echo "===== JAVA VERSION ====="
-
                 sh '''
                     echo "JAVA_HOME=$JAVA_HOME"
-                    which java
                     java -version
-                '''
-
-                echo "===== MAVEN VERSION ====="
-
-                sh '''
-                    export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
-                    export PATH=$JAVA_HOME/bin:$PATH
-
-                    echo "JAVA_HOME=$JAVA_HOME"
-                    which java
-                    which mvn
-
-                    java -version
+                    javac -version
                     mvn -version
                 '''
-
-                echo "===== BUILDING APPLICATION ====="
-
-                dir('maheflix') {
-
-                    sh '''
-                        export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
-                        export PATH=$JAVA_HOME/bin:$PATH
-
-                        mvn clean package
-                    '''
-                }
-
-                echo "===== BUILD COMPLETED ====="
             }
         }
 
-        stage('Verify WAR') {
+        stage('Build and Deploy') {
             steps {
-
-                dir('maheflix') {
-
-                    sh '''
-                        echo "===== TARGET DIRECTORY ====="
-                        ls -lh target/
-
-                        echo "===== WAR FILE ====="
-                        ls -lh target/maheflix-webapp.war
-                    '''
-                }
-            }
-        }
-
-        stage('Deploy to AWS') {
-            steps {
-
-                echo "===== DEPLOYING TO AWS ====="
-
                 sh """
-                    ssh -o StrictHostKeyChecking=no ubuntu@${SERVER_IP} "bash -s" <<'REMOTE_SCRIPT'
-
+                ssh -o StrictHostKeyChecking=no ubuntu@${SERVER_IP} '
                     set -e
-
-                    echo "===== CONNECTED TO AWS SERVER ====="
-
-                    echo "===== JAVA VERSION ====="
-
-                    export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
-                    export PATH=\\\$JAVA_HOME/bin:\\\$PATH
-
-                    java -version
-
-                    echo "===== CLEANING OLD PROJECT ====="
 
                     rm -rf ${REPO_DIR}
 
-                    echo "===== CLONING REPOSITORY ====="
+                    git clone https://github.com/nallam-mahendra/${REPO_DIR}.git
 
-                    git clone ${REPO_URL}
+                    cd ${REPO_DIR}/${APP_NAME}
 
-                    cd ${REPO_DIR}/maheflix
-
-                    echo "===== MAVEN VERSION ====="
-
+                    java -version
                     mvn -version
-
-                    echo "===== BUILDING APPLICATION ====="
 
                     mvn clean package
 
-                    echo "===== CHECKING WAR ====="
+                    sudo cp target/${APP_NAME}.war /opt/tomcat/webapps/
 
-                    ls -lh target/
-
-                    echo "===== REMOVING OLD WAR ====="
-
-                    sudo rm -f /opt/tomcat/webapps/maheflix.war
-
-                    sudo rm -rf /opt/tomcat/webapps/maheflix
-
-                    echo "===== DEPLOYING WAR ====="
-
-                    sudo cp target/maheflix-webapp.war /opt/tomcat/webapps/maheflix.war
-
-                    echo "===== WAR DEPLOYED ====="
-
-                    echo "===== RESTARTING TOMCAT ====="
-
-                    if sudo systemctl list-unit-files | grep -q '^tomcat.service'; then
-
-                        sudo systemctl restart tomcat
-
-                        sudo systemctl status tomcat --no-pager
-
-                    else
-
-                        echo "Tomcat systemd service not found."
-
-                        echo "Starting Tomcat manually..."
-
-                        sudo /opt/tomcat/bin/shutdown.sh || true
-
-                        sleep 5
-
-                        sudo /opt/tomcat/bin/startup.sh
-
-                        sleep 10
-
-                        echo "===== TOMCAT PROCESS ====="
-
-                        ps -ef | grep tomcat | grep -v grep || true
-
-                    fi
-
-                    echo "======================================"
-                    echo " MAHEFLIX DEPLOYMENT SUCCESSFUL "
-                    echo "======================================"
-
-REMOTE_SCRIPT
+                    echo "Deployment completed successfully!"
+                '
                 """
             }
-        }
-    }
-
-    post {
-
-        success {
-            echo "======================================"
-            echo " MAHEFLIX DEPLOYMENT SUCCESSFUL "
-            echo "======================================"
-        }
-
-        failure {
-            echo "======================================"
-            echo " MAHEFLIX DEPLOYMENT FAILED "
-            echo "======================================"
         }
     }
 }

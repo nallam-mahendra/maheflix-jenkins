@@ -9,7 +9,7 @@ pipeline {
 
     environment {
         APP_NAME = "maheflix"
-        SERVER_IP = "54.200.67.45"
+        SERVER_IP = "35.87.12.190"
         REPO_URL = "https://github.com/nallam-mahendra/maheflix-jenkins.git"
         REPO_DIR = "maheflix-jenkins"
     }
@@ -25,16 +25,37 @@ pipeline {
 
         stage('Build') {
             steps {
+
                 echo "===== JAVA VERSION ====="
-                sh 'java -version'
+
+                sh '''
+                    echo "JAVA_HOME=$JAVA_HOME"
+                    which java
+                    java -version
+                '''
 
                 echo "===== MAVEN VERSION ====="
-                sh 'mvn -version'
+
+                sh '''
+                    export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+                    export PATH=$JAVA_HOME/bin:$PATH
+
+                    echo "JAVA_HOME=$JAVA_HOME"
+                    which java
+                    which mvn
+
+                    java -version
+                    mvn -version
+                '''
 
                 echo "===== BUILDING APPLICATION ====="
 
                 dir('maheflix') {
+
                     sh '''
+                        export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+                        export PATH=$JAVA_HOME/bin:$PATH
+
                         mvn clean package
                     '''
                 }
@@ -45,9 +66,11 @@ pipeline {
 
         stage('Verify WAR') {
             steps {
+
                 dir('maheflix') {
+
                     sh '''
-                        echo "===== GENERATED FILES ====="
+                        echo "===== TARGET DIRECTORY ====="
                         ls -lh target/
 
                         echo "===== WAR FILE ====="
@@ -60,7 +83,7 @@ pipeline {
         stage('Deploy to AWS') {
             steps {
 
-                echo "===== DEPLOYING TO AWS SERVER ====="
+                echo "===== DEPLOYING TO AWS ====="
 
                 sh """
                     ssh -o StrictHostKeyChecking=no ubuntu@${SERVER_IP} "bash -s" <<'REMOTE_SCRIPT'
@@ -70,40 +93,41 @@ pipeline {
                     echo "===== CONNECTED TO AWS SERVER ====="
 
                     echo "===== JAVA VERSION ====="
+
+                    export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+                    export PATH=\\\$JAVA_HOME/bin:\\\$PATH
+
                     java -version
 
-                    echo "===== REMOVING OLD APPLICATION ====="
+                    echo "===== CLEANING OLD PROJECT ====="
+
+                    rm -rf ${REPO_DIR}
+
+                    echo "===== CLONING REPOSITORY ====="
+
+                    git clone ${REPO_URL}
+
+                    cd ${REPO_DIR}/maheflix
+
+                    echo "===== MAVEN VERSION ====="
+
+                    mvn -version
+
+                    echo "===== BUILDING APPLICATION ====="
+
+                    mvn clean package
+
+                    echo "===== CHECKING WAR ====="
+
+                    ls -lh target/
+
+                    echo "===== REMOVING OLD WAR ====="
 
                     sudo rm -f /opt/tomcat/webapps/maheflix.war
 
                     sudo rm -rf /opt/tomcat/webapps/maheflix
 
-                    echo "===== CLONING APPLICATION ====="
-
-                    rm -rf ${REPO_DIR}
-
-                    git clone ${REPO_URL}
-
-                    echo "===== BUILDING APPLICATION ON SERVER ====="
-
-                    cd ${REPO_DIR}/maheflix
-
-                    export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
-                    export PATH=/usr/lib/jvm/java-21-openjdk-amd64/bin:/usr/share/maven/bin:/usr/bin:/bin
-
-                    echo "===== JAVA ====="
-                    java -version
-
-                    echo "===== MAVEN ====="
-                    mvn -version
-
-                    mvn clean package
-
-                    echo "===== WAR FILE ====="
-
-                    ls -lh target/
-
-                    echo "===== COPYING WAR TO TOMCAT ====="
+                    echo "===== DEPLOYING WAR ====="
 
                     sudo cp target/maheflix-webapp.war /opt/tomcat/webapps/maheflix.war
 
@@ -115,43 +139,31 @@ pipeline {
 
                         sudo systemctl restart tomcat
 
-                        echo "===== TOMCAT STATUS ====="
-
                         sudo systemctl status tomcat --no-pager
 
                     else
 
                         echo "Tomcat systemd service not found."
 
-                        echo "===== CHECKING TOMCAT PROCESS ====="
+                        echo "Starting Tomcat manually..."
 
-                        if pgrep -f 'org.apache.catalina.startup.Bootstrap' > /dev/null; then
+                        sudo /opt/tomcat/bin/shutdown.sh || true
 
-                            echo "Tomcat is running."
-
-                            echo "Stopping Tomcat..."
-
-                            sudo /opt/tomcat/bin/shutdown.sh || true
-
-                            sleep 5
-
-                        fi
-
-                        echo "Starting Tomcat..."
+                        sleep 5
 
                         sudo /opt/tomcat/bin/startup.sh
 
                         sleep 10
 
-                        echo "===== TOMCAT PROCESSES ====="
+                        echo "===== TOMCAT PROCESS ====="
 
                         ps -ef | grep tomcat | grep -v grep || true
 
                     fi
 
-                    echo "================================="
-                    echo " DEPLOYMENT SUCCESSFUL "
-                    echo "================================="
+                    echo "======================================"
+                    echo " MAHEFLIX DEPLOYMENT SUCCESSFUL "
+                    echo "======================================"
 
 REMOTE_SCRIPT
                 """
@@ -162,15 +174,15 @@ REMOTE_SCRIPT
     post {
 
         success {
-            echo "================================="
+            echo "======================================"
             echo " MAHEFLIX DEPLOYMENT SUCCESSFUL "
-            echo "================================="
+            echo "======================================"
         }
 
         failure {
-            echo "================================="
+            echo "======================================"
             echo " MAHEFLIX DEPLOYMENT FAILED "
-            echo "================================="
+            echo "======================================"
         }
     }
 }

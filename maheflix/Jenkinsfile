@@ -1,9 +1,16 @@
 pipeline {
+
     agent any
 
     tools {
-        maven 'Maven3'
-        jdk 'JDK21'
+        maven 'Maven-3.8'
+        jdk 'JDK-21'
+    }
+
+    environment {
+        APP_NAME = "maheflix"
+        SERVER_IP = "54.200.67.45"
+        REPO_DIR = "maheflix-jenkins"
     }
 
     stages {
@@ -14,9 +21,36 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build and Deploy') {
             steps {
-                sh 'mvn clean package'
+                sh """
+                ssh -o StrictHostKeyChecking=no ubuntu@${SERVER_IP} '
+                    set -e
+
+                    echo "Cleaning previous deployment..."
+                    rm -rf ${REPO_DIR}
+
+                    echo "Cloning repository..."
+                    git clone https://github.com/nallam-mahendra/${REPO_DIR}.git
+
+                    echo "Moving to application directory..."
+                    cd ${REPO_DIR}/${APP_NAME}
+
+                    echo "Checking Java version..."
+                    java -version
+
+                    echo "Checking Maven version..."
+                    mvn -version
+
+                    echo "Building application..."
+                    mvn clean package
+
+                    echo "Deploying WAR file..."
+                    sudo cp target/${APP_NAME}.war /opt/tomcat/webapps/
+
+                    echo "Deployment completed successfully!"
+                '
+                """
             }
         }
     }

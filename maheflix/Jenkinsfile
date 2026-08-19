@@ -43,7 +43,7 @@ pipeline {
                     export PATH=/usr/lib/jvm/java-21-openjdk-amd64/bin:/usr/bin:/bin
 
                     echo "===== JAVA VERSION ====="
-                    /usr/lib/jvm/java-21-openjdk-amd64/bin/java -version
+                    java -version
 
                     echo "===== MAVEN VERSION ====="
                     mvn -version
@@ -55,7 +55,18 @@ pipeline {
                     ls -lh target/
 
                     echo "===== DEPLOYING WAR ====="
-                    sudo cp target/${APP_NAME}.war /opt/tomcat/webapps/
+
+                    sudo cp target/maheflix-webapp.war /opt/tomcat/webapps/maheflix.war
+
+                    echo "===== WAR DEPLOYED ====="
+
+                    echo "===== RESTARTING TOMCAT ====="
+
+                    sudo systemctl restart tomcat
+
+                    echo "===== TOMCAT STATUS ====="
+
+                    sudo systemctl status tomcat --no-pager
 
                     echo "===== DEPLOYMENT SUCCESSFUL ====="
 

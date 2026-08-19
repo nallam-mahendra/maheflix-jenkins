@@ -45,9 +45,6 @@ pipeline {
                     echo "===== JAVA VERSION ====="
                     /usr/lib/jvm/java-21-openjdk-amd64/bin/java -version
 
-                    echo "===== JAVAC VERSION ====="
-                    /usr/lib/jvm/java-21-openjdk-amd64/bin/javac -version
-
                     echo "===== MAVEN VERSION ====="
                     mvn -version
 
